@@ -2,10 +2,30 @@
 	"authors": [
 		"Artha"
 	],
-	"copyright": "Copyright © 2021, Artha",
-	"description": "My template for D applications",
+	"copyright": "Copyright © 2024, Artha",
+	"dependencies": {
+		"fluid": ">=0.0.0"
+	},
+	"description": "Tree Sitter integration for Fluid's CodeInput",
 	"license": "BSL",
-	"name": "dtemplate",
-	"targetType": "executable",
-	"targetPath": "build"
+	"name": "fluid-tree-sitter",
+	"targetPath": "build",
+	"targetType": "library",
+	"libs": ["tree-sitter"],
+	"configurations": [
+		{
+			"name": "default",
+			"targetType": "library"
+		},
+		{
+			"name": "unittest",
+			"libs": [
+				"tree-sitter-d",
+				"tree-sitter-smaug"
+			],
+			"lflags-posix": [
+				"-Lbuild/"
+			]
+		}
+	]
 }

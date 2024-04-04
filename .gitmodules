@@ -1,0 +1,9 @@
+[submodule "external/tree-sitter"]
+	path = external/tree-sitter
+	url = https://github.com/tree-sitter/tree-sitter
+[submodule "external/tree-sitter-d"]
+	path = external/tree-sitter-d
+	url = https://github.com/gdamore/tree-sitter-d
+[submodule "external/tree-sitter-smaug"]
+	path = external/tree-sitter-smaug
+	url = gitea@samerion.com:Samerion/tree-sitter-smaug
