@@ -321,7 +321,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
                 }
 
                 // End delimiter
-                else if (delimiter.change == -1) {
+                else if (delimiter.change == -1 && !stack.empty) {
 
                     const pairedLine = stack.back;
                     stack.popBack;

@@ -1,0 +1,1 @@
+../external/tree-sitter-d/src/parser.c

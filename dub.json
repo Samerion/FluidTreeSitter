@@ -12,6 +12,7 @@
 	"targetPath": "build",
 	"targetType": "library",
 	"libs": ["tree-sitter"],
+	"sourcePaths": ["source/fluid"],
 	"configurations": [
 		{
 			"name": "default",
@@ -19,13 +20,36 @@
 		},
 		{
 			"name": "unittest",
-			"libs": [
-				"tree-sitter-d",
-				"tree-sitter-smaug"
-			],
 			"lflags-posix": [
 				"-Lbuild/"
-			]
+			],
+			"dependencies": {
+				"fluid-tree-sitter:smaug": ">=0.0.0",
+				"fluid-tree-sitter:d": ">=0.0.0"
+			}
+		}
+	],
+	"subPackages": [
+		{
+			"name": "smaug",
+			"sourceFiles": [
+				"source/tree_sitter_smaug.c"
+			],
+			"sourcePaths": [],
+			"importPaths": [],
+			"targetPath": "build",
+			"targetType": "sourceLibrary"
+		},
+		{
+			"name": "d",
+			"sourceFiles": [
+				"source/tree_sitter_d.c",
+				"source/tree_sitter_d_scanner.c"
+			],
+			"sourcePaths": [],
+			"importPaths": [],
+			"targetPath": "build",
+			"targetType": "sourceLibrary"
 		}
 	]
 }
