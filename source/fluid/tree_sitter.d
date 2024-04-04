@@ -17,9 +17,6 @@ import fluid.text;
 import fluid.code_input;
 
 
-pragma(msg, typeof(TSTreeCursor.context));
-pragma(msg, __traits(getLocation, TSTreeCursor));
-
 /// Get TSLanguage for language with the given name. This template creates a binding for the grammar's C entrypoint,
 /// such as `tree_sitter_d` or `tree_sitter_javascript`.
 ///

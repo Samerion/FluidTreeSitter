@@ -17,8 +17,12 @@ static inline uint32_t atomic_dec(volatile uint32_t *p) {
   return atomicFetchSub(*p, 1) - 1;
 }
 
+#define ts_malloc  malloc
+#define ts_calloc  calloc
+#define ts_realloc realloc
+#define ts_free    free
+
 #include "../external/tree-sitter/lib/include/tree_sitter/api.h"
-#include "../external/tree-sitter/lib/src/alloc.c"
 #include "../external/tree-sitter/lib/src/get_changed_ranges.c"
 #include "../external/tree-sitter/lib/src/language.c"
 #include "../external/tree-sitter/lib/src/lexer.c"
