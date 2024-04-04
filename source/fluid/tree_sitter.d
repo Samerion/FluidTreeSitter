@@ -6,7 +6,7 @@
 /// provided by [the D grammar for Tree Sitter](https://github.com/gdamore/tree-sitter-d)
 module fluid.tree_sitter;
 
-import fluid_tree_sitter_c;
+import lib_tree_sitter;
 
 import std.uni;
 import std.range;
@@ -16,6 +16,9 @@ import std.algorithm;
 import fluid.text;
 import fluid.code_input;
 
+
+pragma(msg, typeof(TSTreeCursor.context));
+pragma(msg, __traits(getLocation, TSTreeCursor));
 
 /// Get TSLanguage for language with the given name. This template creates a binding for the grammar's C entrypoint,
 /// such as `tree_sitter_d` or `tree_sitter_javascript`.

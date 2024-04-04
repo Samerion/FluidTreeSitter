@@ -11,8 +11,8 @@
 	"name": "fluid-tree-sitter",
 	"targetPath": "build",
 	"targetType": "library",
-	"libs": ["tree-sitter"],
 	"sourcePaths": ["source/fluid"],
+	"sourceFiles": ["source/lib_tree_sitter.c"],
 	"configurations": [
 		{
 			"name": "default",
