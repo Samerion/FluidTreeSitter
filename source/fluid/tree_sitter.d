@@ -16,6 +16,8 @@ import std.algorithm;
 import fluid.text;
 import fluid.code_input;
 
+public import lib_tree_sitter : TSLanguage, TSQuery, TSQueryError, ts_query_new, ts_query_delete;
+
 
 /// Get TSLanguage for language with the given name. This template creates a binding for the grammar's C entrypoint,
 /// such as `tree_sitter_d` or `tree_sitter_javascript`.
@@ -30,19 +32,6 @@ template treeSitterLanguage(string name) {
 
 }
 
-/// Create a `TreeSitterHighlighter` using given language (see `treeSitterLanguage`) and query files. The grammar must
-/// be linked into this program. Given query files will be loaded from the filesystem and used by the highlighter.
-TreeSitterHighlighter treeSitterHighlighter(string language)(string[] queryFiles...) @system {
-
-    import std.file : readText;
-
-    auto tsl = treeSitterLanguage!language;
-    const queries = queryFiles.map!(a => a.readText).join;
-
-    return new TreeSitterHighlighter(tsl, queries);
-
-}
-
 
 @safe:
 
@@ -52,9 +41,8 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
     public {
 
-        TSParser* parser;
         TSLanguage* language;
-        TSTree* tree;
+        TSQuery* _query;
 
         CodeToken[string] palette;
         string[256] paletteNames;
@@ -107,8 +95,9 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         /// Current text.
         Rope text;
 
+        TSParser* _parser;
+        TSTree* tree;
         TSQueryCursor* _cursor;
-        TSQuery* _query;
         size_t _lastRangeIndex;
         size_t _lastIndex;
         CodeToken _paletteSize;
@@ -119,30 +108,21 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
     }
 
-    /// Create a highlighter using a TSLanguage* and a query file. Unlike `treeSitterLanguage`, takes file content
-    /// rather than file paths.
-    this(TSLanguage* language, string queries) @trusted {
+    /// Create a highlighter using a TSLanguage* and relevant highlight query.
+    this(TSLanguage* language, TSQuery* query) @trusted {
 
-        uint offset;
-        TSQueryError error;
-
-        this.parser = ts_parser_new();
         this.language = language;
-        this._query = ts_query_new(language, queries.ptr, cast(uint) queries.length, &offset, &error);
+        this._query = query;
+        this._parser = ts_parser_new();
         this._cursor = ts_query_cursor_new();
 
-        if (_query is null)
-            throw new Exception(format!"TreeSitter query error: %s"(error));
-
-        ts_parser_set_language(parser, language);
+        ts_parser_set_language(_parser, language);
 
     }
 
     ~this() @trusted {
 
-        ts_parser_delete(parser);
-        ts_language_delete(language);
-        ts_query_delete(_query);
+        ts_parser_delete(_parser);
         ts_query_cursor_delete(_cursor);
         if (tree) ts_tree_delete(tree);
 
@@ -197,7 +177,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         };
 
         // Create the tree
-        tree = ts_parser_parse(parser, tree, input);
+        tree = ts_parser_parse(_parser, tree, input);
 
         runQueries();
 
@@ -399,12 +379,18 @@ unittest {
 
     import std.file : readText;
 
+    TSQueryError error;
+    uint errorOffset;
+
+    const queries = readText("external/tree-sitter-d/queries/highlights.scm");
+
     // Load the language and corresponding queries
-    // Note: This is @system
-    auto highlighter = treeSitterHighlighter!"d"(
-        "external/tree-sitter-d/queries/highlights.scm",
-        "external/tree-sitter-d/queries/indents.scm",
-    );
+    auto language = treeSitterLanguage!"d";
+    auto query = ts_query_new(language, queries.ptr, cast(uint) queries.length, &errorOffset, &error);
+    scope (exit) ts_query_delete(query);
+
+    // Create the highlighter
+    auto highlighter = new TreeSitterHighlighter(language, query);
 
     // Create the input
     auto root = codeInput(highlighter);
@@ -416,13 +402,42 @@ version (unittest) private {
 
     import std.meta : AliasSeq;
 
-    enum dQueries = AliasSeq!(
-        "external/tree-sitter-d/queries/highlights.scm"
-    );
-    enum smaugQueries = AliasSeq!(
-        "external/tree-sitter-smaug/queries/highlights.scm",
-        "external/tree-sitter-smaug/queries/indents.scm",
-    );
+    TSQuery* dQuery;
+    TSQuery* smaugQuery;
+
+    static this() @system {
+
+        import std.file : readText;
+
+        TSQueryError error;
+        uint errorOffset;
+
+        const dQuerySource =
+            readText("external/tree-sitter-d/queries/highlights.scm");
+        const smaugQuerySource = join([
+            readText("external/tree-sitter-smaug/queries/highlights.scm"),
+            readText("external/tree-sitter-smaug/queries/indents.scm")]);
+
+        dQuery = ts_query_new(treeSitterLanguage!"d", dQuerySource.ptr, cast(uint) dQuerySource.length,
+            &errorOffset, &error);
+
+        assert(dQuery, format!"%s at %s in D queries"(error, errorOffset));
+
+        smaugQuery = ts_query_new(treeSitterLanguage!"smaug", smaugQuerySource.ptr, cast(uint) smaugQuerySource.length,
+            &errorOffset, &error);
+
+        assert(smaugQuery);
+
+        assert(dQuery, format!"%s at %s in Smaug queries"(error, errorOffset));
+
+    }
+
+    static ~this() @system {
+
+        ts_query_delete(dQuery);
+        ts_query_delete(smaugQuery);
+
+    }
 
     template trusted(alias fun) {
 
@@ -437,7 +452,7 @@ version (unittest) private {
 
 unittest {
 
-    auto highlighter = trusted!(treeSitterHighlighter!"d")(dQueries);
+    auto highlighter = new TreeSitterHighlighter(trusted!(treeSitterLanguage!"d"), dQuery);
     auto source = Rope(q{
         import std.stdio;
 
@@ -480,7 +495,7 @@ unittest {
     import std.ascii : isDigit;
     import fluid.typeface : Typeface;
 
-    auto highlighter = trusted!(treeSitterHighlighter!"smaug")(smaugQueries);
+    auto highlighter = new TreeSitterHighlighter(trusted!(treeSitterLanguage!"smaug"), smaugQuery);
     auto source = Rope(`
         let foo() {       // 0
                           // 1
