@@ -12,6 +12,14 @@
 	"targetPath": "build",
 	"sourcePaths": ["source/fluid"],
 	"sourceFiles": ["source/lib_tree_sitter.c"],
+	"stringImportPaths": ["external"],
+	"lflags-linux": [
+		"-rpath=$$ORIGIN"
+	],
+	"lflags-osx": [
+		"-rpath",
+		"@executable_path/"
+	],
 	"configurations": [
 		{
 			"name": "default",
@@ -34,7 +42,7 @@
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
-			"targetType": "sourceLibrary"
+			"targetType": "dynamicLibrary"
 		},
 		{
 			"name": "d",
@@ -45,7 +53,7 @@
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
-			"targetType": "sourceLibrary"
+			"targetType": "dynamicLibrary"
 		}
 	]
 }

@@ -32,6 +32,18 @@ template treeSitterLanguage(string name) {
 
 }
 
+// Load queries for included dependencies
+version (Have_fluid_tree_sitter_smaug)
+    immutable smaugQuerySource = join([
+        import("tree-sitter-smaug/queries/highlights.scm"),
+        import("tree-sitter-smaug/queries/indents.scm")
+    ]);
+
+version (Have_fluid_tree_sitter_d)
+    immutable dQuerySource = join([
+        import("tree-sitter-d/queries/highlights.scm"),
+    ]);
+
 
 @safe:
 
@@ -371,6 +383,16 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
     }
 
+    string treeToString() @trusted {
+
+        auto root = ts_tree_root_node(tree);
+        auto str = ts_node_string(root);
+        scope (exit) free(str);
+
+        return str.fromStringz.idup;
+
+    }
+
 }
 
 ///
@@ -382,7 +404,7 @@ unittest {
     TSQueryError error;
     uint errorOffset;
 
-    const queries = readText("external/tree-sitter-d/queries/highlights.scm");
+    const queries = dQuerySource;
 
     // Load the language and corresponding queries
     auto language = treeSitterLanguage!"d";
@@ -412,12 +434,6 @@ version (unittest) private {
         TSQueryError error;
         uint errorOffset;
 
-        const dQuerySource =
-            readText("external/tree-sitter-d/queries/highlights.scm");
-        const smaugQuerySource = join([
-            readText("external/tree-sitter-smaug/queries/highlights.scm"),
-            readText("external/tree-sitter-smaug/queries/indents.scm")]);
-
         dQuery = ts_query_new(treeSitterLanguage!"d", dQuerySource.ptr, cast(uint) dQuerySource.length,
             &errorOffset, &error);
 
@@ -426,9 +442,7 @@ version (unittest) private {
         smaugQuery = ts_query_new(treeSitterLanguage!"smaug", smaugQuerySource.ptr, cast(uint) smaugQuerySource.length,
             &errorOffset, &error);
 
-        assert(smaugQuery);
-
-        assert(dQuery, format!"%s at %s in Smaug queries"(error, errorOffset));
+        assert(smaugQuery, format!"%s at %s in Smaug queries"(error, errorOffset));
 
     }
 
@@ -484,6 +498,57 @@ unittest {
     range = range.find(slice("import", keyword));
     range = range.find(slice("void", type));
     range = range.find(slice("main", function_));
+    range = range.find(slice(`"Hello, World!"`, string_));
+    assert(!range.empty);
+
+}
+
+unittest {
+
+    auto highlighter = new TreeSitterHighlighter(trusted!(treeSitterLanguage!"smaug"), smaugQuery);
+    auto source = Rope(`
+        import smaug.io
+
+        let main() yield IO {
+            do writeln("Hello, World!")
+        }
+    `);
+
+    TextStyleSlice slice(string word, ubyte token) {
+
+        const index = source.indexOf(word);
+
+        return TextStyleSlice(index, index + word.length, token);
+
+    }
+
+    const keyword = highlighter.tokenForCaptureName("keyword");
+    const type = highlighter.tokenForCaptureName("type");
+    const attribute = highlighter.tokenForCaptureName("attribute");
+    const function_ = highlighter.tokenForCaptureName("function");
+    const string_ = highlighter.tokenForCaptureName("string");
+
+    // Load the source
+    highlighter.parse(source);
+
+    // Test some specific tokens in order
+    auto range = highlighter.save;
+
+    range = range.find(slice("import", keyword));
+    assert(!range.empty);
+    range = range.find(slice("let", keyword));
+    assert(!range.empty);
+    version (none)  // TODO
+    range = range.find(slice("main", function_));
+    assert(!range.empty);
+    range = range.find(slice("yield", attribute));
+    assert(!range.empty);
+    version (none)
+    range = range.find(slice("IO", type));
+    assert(!range.empty);
+    version (none)
+    range = range.find(slice("writeln", function_));
+    assert(!range.empty);
     range = range.find(slice(`"Hello, World!"`, string_));
     assert(!range.empty);
 
