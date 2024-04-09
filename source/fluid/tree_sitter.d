@@ -246,8 +246,6 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
                         delimiters ~= Delimiter(end, +1, endPoint);
                         break;
                     case "indent.end":
-                        // TreeSitter attempts to fix up mismatching braces and it messes with the indents
-                        if (start == text.length) break;
                         delimiters ~= Delimiter(start, -1, startPoint);
                         break;
                     case "indent.exclude":
@@ -313,7 +311,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
                 }
 
                 // End delimiter
-                else if (delimiter.change == -1 && !stack.empty) {
+                else if (delimiter.change == -1 && !stack.empty && delimiter.offset != text.length) {
 
                     const pairedLine = stack.back;
                     stack.popBack;
@@ -600,5 +598,17 @@ unittest {
         previousIndent = expectedIndent;
 
     }
+
+}
+
+unittest {
+
+    auto highlighter = new TreeSitterHighlighter(trusted!(treeSitterLanguage!"smaug"), smaugQuery);
+    auto source = Rope("let foo() {\n");
+
+    highlighter.parse(source);
+
+    assert(highlighter.indentLevel(0) == 0);
+    assert(highlighter.indentLevel(source.length) == 1);
 
 }
