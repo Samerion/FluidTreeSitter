@@ -58,7 +58,27 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         CodeToken[string] palette;
         string[256] paletteNames;
-        CodeSlice[] highlighterSlices;
+        IndexedCodeSlice[] highlighterSlices;
+
+    }
+
+    private struct IndexedCodeSlice {
+
+        CodeSlice slice;
+        uint patternIndex;
+
+        alias slice this;
+
+        ptrdiff_t opCmp(const IndexedCodeSlice other) const {
+
+            auto cmp = slice.opCmp(other.slice);
+
+            if (cmp) return cmp;
+
+            // If the delimiters have the same offset, sort them so the last patterns come up first
+            return other.patternIndex - patternIndex;
+
+        }
 
     }
 
@@ -208,9 +228,6 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         auto rootStart = ts_node_start_point(root);
         auto rootEnd = ts_node_end_point(root);
 
-        // Run the query, find all matches
-        ts_query_cursor_exec(_cursor, _query, root);
-
         // Delete the slices
         // TODO Reuse as much as possible
         highlighterSlices.length = 0;
@@ -219,9 +236,14 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         bool[ptrdiff_t] excludedIndents;
 
         scope (success) loadIndents(delimiters[]);
+        scope (success) highlighterSlices.sort!("a < b", SwapStrategy.stable);
+
+        // Run the query, find all matches
+        ts_query_cursor_exec(_cursor, _query, root);
 
         // Check each match
         TSQueryMatch match;
+
         while (ts_query_cursor_next_match(_cursor, &match)) {
 
             auto captures = match.captures[0 .. match.capture_count];
@@ -244,26 +266,29 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
                     // Indent tokens
                     case "indent.begin":
                         delimiters ~= Delimiter(end, +1, endPoint);
-                        break;
+                        continue;
                     case "indent.end":
                         delimiters ~= Delimiter(start, -1, startPoint);
-                        break;
+                        continue;
                     case "indent.exclude":
                         excludedIndents[start] = true;
                         excludedIndents[end] = true;
-                        break;
+                        continue;
                     case "indent.whole":
                         delimiters ~= wholeIndent(start, +1, startPoint);
                         delimiters ~= wholeIndent(end, -1, endPoint);
-                        break;
+                        continue;
 
                     // Highlight token
                     default:
 
                         const token = tokenForCaptureName(name);
 
-                        highlighterSlices ~= CodeSlice(start, end, token);
-                        break;
+                        highlighterSlices ~= IndexedCodeSlice(
+                            CodeSlice(start, end, token),
+                            match.pattern_index,
+                        );
+                        continue;
 
                 }
 
@@ -348,6 +373,8 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         if (result.empty)
             return CodeSlice();
+
+        // Get the item with the lowest start value
         else
             return result.front;
 
@@ -533,20 +560,11 @@ unittest {
     auto range = highlighter.save;
 
     range = range.find(slice("import", keyword));
-    assert(!range.empty);
     range = range.find(slice("let", keyword));
-    assert(!range.empty);
-    version (none)  // TODO
     range = range.find(slice("main", function_));
-    assert(!range.empty);
     range = range.find(slice("yield", attribute));
-    assert(!range.empty);
-    version (none)
     range = range.find(slice("IO", type));
-    assert(!range.empty);
-    version (none)
     range = range.find(slice("writeln", function_));
-    assert(!range.empty);
     range = range.find(slice(`"Hello, World!"`, string_));
     assert(!range.empty);
 
@@ -578,6 +596,10 @@ unittest {
             do            // 1
               call()      // 2
                           // 1
+            if let x = a  // 1
+                return x  // 2
+            else          // 1
+                return 0  // 2
         }                 // 0
     `);
 

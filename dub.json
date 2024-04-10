@@ -11,10 +11,10 @@
 	"name": "fluid-tree-sitter",
 	"targetPath": "build",
 	"sourcePaths": ["source/fluid"],
-	"sourceFiles": ["source/lib_tree_sitter.c"],
 	"stringImportPaths": ["external"],
 	"lflags-linux": [
-		"-rpath=$$ORIGIN"
+		"-rpath=$$ORIGIN",
+		"-Lbuild"
 	],
 	"lflags-osx": [
 		"-rpath",
@@ -23,10 +23,24 @@
 	"configurations": [
 		{
 			"name": "default",
-			"targetType": "sourceLibrary"
+			"targetType": "sourceLibrary",
+			"sourceFiles": ["source/lib_tree_sitter.c"]
+		},
+		{
+			"name": "external",
+			"libs": ["tree-sitter"]
 		},
 		{
 			"name": "unittest",
+			"sourceFiles": ["source/lib_tree_sitter.c"],
+			"dependencies": {
+				"fluid-tree-sitter:smaug": ">=0.0.0",
+				"fluid-tree-sitter:d": ">=0.0.0"
+			}
+		},
+		{
+			"name": "unittest-external",
+			"libs": ["tree-sitter"],
 			"dependencies": {
 				"fluid-tree-sitter:smaug": ">=0.0.0",
 				"fluid-tree-sitter:d": ">=0.0.0"
@@ -42,7 +56,8 @@
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
-			"targetType": "dynamicLibrary"
+			"targetType": "dynamicLibrary",
+			"extraDependencyFiles": ["external/tree-sitter-smaug/queries/*.scm"]
 		},
 		{
 			"name": "d",
