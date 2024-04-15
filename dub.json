@@ -56,8 +56,7 @@
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
-			"targetType": "dynamicLibrary",
-			"extraDependencyFiles": ["external/tree-sitter-smaug/queries/*.scm"]
+			"targetType": "dynamicLibrary"
 		},
 		{
 			"name": "d",
