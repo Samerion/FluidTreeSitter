@@ -444,8 +444,11 @@ unittest {
 
 }
 
+version (Have_fluid_tree_sitter_smaug):
+version (unittest):
+
 // Unit test helpers
-version (unittest) private {
+private {
 
     import std.meta : AliasSeq;
 
