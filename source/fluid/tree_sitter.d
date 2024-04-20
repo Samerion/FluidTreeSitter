@@ -128,7 +128,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         Rope text;
 
         TSParser* _parser;
-        TSTree* tree;
+        TSTree* _tree;
         TSQueryCursor* _cursor;
         size_t _lastRangeIndex;
         size_t _lastIndex;
@@ -156,7 +156,14 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         ts_parser_delete(_parser);
         ts_query_cursor_delete(_cursor);
-        if (tree) ts_tree_delete(tree);
+        if (_tree) ts_tree_delete(_tree);
+
+    }
+
+    /// Get the tree from the parser. The tree may be deleted whenever the node triggers an update.
+    TSTree* tree() @system {
+
+        return _tree;
 
     }
 
@@ -191,8 +198,8 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         // Delete previous tree
         // TODO Use ts_tree_edit instead
-        if (tree) ts_tree_delete(tree);
-        tree = null;
+        if (_tree) ts_tree_delete(_tree);
+        _tree = null;
 
         // Make the rope readable by TreeSitter
         TSInput input;
@@ -209,7 +216,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         };
 
         // Create the tree
-        tree = ts_parser_parse(_parser, tree, input);
+        _tree = ts_parser_parse(_parser, _tree, input);
 
         runQueries();
 
@@ -224,7 +231,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         }
 
-        auto root = ts_tree_root_node(tree);
+        auto root = ts_tree_root_node(_tree);
         auto rootStart = ts_node_start_point(root);
         auto rootEnd = ts_node_end_point(root);
 
@@ -410,7 +417,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
     string treeToString() @trusted {
 
-        auto root = ts_tree_root_node(tree);
+        auto root = ts_tree_root_node(_tree);
         auto str = ts_node_string(root);
         scope (exit) free(str);
 
