@@ -4,7 +4,17 @@
 	],
 	"copyright": "Copyright © 2024, Artha",
 	"dependencies": {
-		"fluid": ">=0.0.0"
+		"fluid": ">=0.0.0",
+		"fluid-tree-sitter:smaug": {
+			"path": ".",
+			"optional": true,
+			"default": false
+		},
+		"fluid-tree-sitter:d": {
+			"path": ".",
+			"optional": true,
+			"default": false
+		}
 	},
 	"description": "Tree Sitter integration for Fluid's CodeInput",
 	"license": "BSL",
@@ -23,8 +33,9 @@
 	"configurations": [
 		{
 			"name": "default",
-			"targetType": "sourceLibrary",
-			"sourceFiles": ["source/lib_tree_sitter.c"]
+			"targetType": "dynamicLibrary",
+			"sourceFiles": ["source/lib_tree_sitter.c"],
+			"sourcePaths": ["source/fluid"]
 		},
 		{
 			"name": "external",
@@ -34,16 +45,24 @@
 			"name": "unittest",
 			"sourceFiles": ["source/lib_tree_sitter.c"],
 			"dependencies": {
-				"fluid-tree-sitter:smaug": ">=0.0.0",
-				"fluid-tree-sitter:d": ">=0.0.0"
+				"fluid-tree-sitter:smaug": {
+					"path": "."
+				},
+				"fluid-tree-sitter:d": {
+					"path": "."
+				}
 			}
 		},
 		{
 			"name": "unittest-external",
 			"libs": ["tree-sitter"],
 			"dependencies": {
-				"fluid-tree-sitter:smaug": ">=0.0.0",
-				"fluid-tree-sitter:d": ">=0.0.0"
+				"fluid-tree-sitter:smaug": {
+					"path": "."
+				},
+				"fluid-tree-sitter:d": {
+					"path": "."
+				}
 			}
 		}
 	],
