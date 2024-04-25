@@ -23,7 +23,7 @@
 	"configurations": [
 		{
 			"name": "default",
-			"targetType": "sourceLibrary",
+			"targetType": "dynamicLibrary",
 			"sourceFiles": ["source/lib_tree_sitter.c"]
 		},
 		{
