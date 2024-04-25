@@ -12,6 +12,10 @@
 	"targetPath": "build",
 	"sourcePaths": ["source/fluid"],
 	"stringImportPaths": ["external"],
+	"preGenerateCommands": [
+		"git submodule init",
+		"git submodule update"
+	],
 	"lflags-linux": [
 		"-rpath=$$ORIGIN",
 		"-Lbuild"
