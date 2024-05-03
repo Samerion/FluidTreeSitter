@@ -4,17 +4,7 @@
 	],
 	"copyright": "Copyright © 2024, Artha",
 	"dependencies": {
-		"fluid": ">=0.0.0",
-		"fluid-tree-sitter:smaug": {
-			"path": ".",
-			"optional": true,
-			"default": false
-		},
-		"fluid-tree-sitter:d": {
-			"path": ".",
-			"optional": true,
-			"default": false
-		}
+		"fluid": ">=0.0.0"
 	},
 	"description": "Tree Sitter integration for Fluid's CodeInput",
 	"license": "BSL",

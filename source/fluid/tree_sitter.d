@@ -32,17 +32,20 @@ template treeSitterLanguage(string name) {
 
 }
 
-// Load queries for included dependencies
-version (Have_fluid_tree_sitter_smaug)
+version (FluidTreeSitter_DisableBuiltInQueries) { }
+else {
+
+    // Load queries for included dependencies
     immutable smaugQuerySource = join([
         import("tree-sitter-smaug/queries/highlights.scm"),
         import("tree-sitter-smaug/queries/indents.scm")
     ]);
 
-version (Have_fluid_tree_sitter_d)
     immutable dQuerySource = join([
         import("tree-sitter-d/queries/highlights.scm"),
     ]);
+
+}
 
 
 @safe:
