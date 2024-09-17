@@ -1,4 +1,4 @@
-#include "tree_sitter/api.h"
+#include "../include/tree_sitter/api.h"
 #include "./parser.h"
 #include <stdint.h>
 
