@@ -12,6 +12,10 @@
 	"targetPath": "build",
 	"sourcePaths": ["source/fluid"],
 	"stringImportPaths": ["external"],
+	"dflags": [
+		"-P-Iexternal/tree-sitter/lib/include",
+		"-P-Iexternal/tree-sitter/lib/src"
+	],
 	"lflags-linux": [
 		"-rpath=$$ORIGIN",
 		"-Lbuild"
