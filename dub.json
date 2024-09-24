@@ -24,6 +24,9 @@
 		"-rpath",
 		"@executable_path/"
 	],
+	"dflags": [
+		"-P-I$PACKAGE_DIR/external/tree-sitter/lib/include"
+	],
 	"configurations": [
 		{
 			"name": "default",
@@ -78,17 +81,40 @@
 	"subPackages": [
 		{
 			"name": "tree-sitter",
-			"sourceFiles": [
-				"source/lib_tree_sitter.c"
-			],
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
 			"targetType": "dynamicLibrary",
-			"dflags": [
-				"-betterC",
-				"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/include",
-				"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/src"
+			"configurations": [
+				{
+					"name": "windows-bin",
+					"targetType": "none",
+					"platforms": [
+						"windows"
+					],
+					"libs": [
+						"tree-sitter"
+					],
+					"copyFiles-windows": [
+						"$PACKAGE_DIR/libraries/windows/tree-sitter.dll"
+					]
+				},
+				{
+					"name": "default",
+					"dflags": [
+						"-betterC",
+						"-P-I$PACKAGE_DIR/external/tree-sitter/lib/include",
+						"-P-I$PACKAGE_DIR/external/tree-sitter/lib/src"
+					],
+					"sourceFiles": [
+						"source/lib_tree_sitter.c"
+					]
+				}
+			],
+			"libs-windows": [
+				"LIBCMT",
+				"Onecore",
+				"Kernel32"
 			]
 		},
 		{
@@ -102,6 +128,9 @@
 			"targetType": "dynamicLibrary",
 			"dflags": [
 				"-betterC"
+			],
+			"libs-windows": [
+				"LIBCMT"
 			]
 		},
 		{
@@ -116,6 +145,9 @@
 			"targetType": "dynamicLibrary",
 			"dflags": [
 				"-betterC"
+			],
+			"libs-windows": [
+				"LIBCMT"
 			]
 		}
 	]
