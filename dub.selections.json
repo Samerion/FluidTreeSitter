@@ -3,6 +3,7 @@
 	"versions": {
 		"bindbc-freetype": "1.1.1",
 		"bindbc-loader": "1.1.5",
-		"fluid": "~main"
+		"fluid": "~main",
+		"silly": "1.1.1"
 	}
 }

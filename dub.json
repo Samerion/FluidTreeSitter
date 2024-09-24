@@ -10,11 +10,15 @@
 	"license": "BSL",
 	"name": "fluid-tree-sitter",
 	"targetPath": "build",
-	"sourcePaths": ["source/fluid"],
-	"stringImportPaths": ["external"],
+	"sourcePaths": [
+		"source/fluid"
+	],
+	"stringImportPaths": [
+		"external"
+	],
 	"dflags": [
-		"-P-Iexternal/tree-sitter/lib/include",
-		"-P-Iexternal/tree-sitter/lib/src"
+		"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/include",
+		"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/src"
 	],
 	"lflags-linux": [
 		"-rpath=$$ORIGIN",
@@ -28,16 +32,24 @@
 		{
 			"name": "default",
 			"targetType": "dynamicLibrary",
-			"sourceFiles": ["source/lib_tree_sitter.c"],
-			"sourcePaths": ["source/fluid"]
+			"sourceFiles": [
+				"source/lib_tree_sitter.c"
+			],
+			"sourcePaths": [
+				"source/fluid"
+			]
 		},
 		{
 			"name": "external",
-			"libs": ["tree-sitter"]
+			"libs": [
+				"tree-sitter"
+			]
 		},
 		{
 			"name": "unittest",
-			"sourceFiles": ["source/lib_tree_sitter.c"],
+			"sourceFiles": [
+				"source/lib_tree_sitter.c"
+			],
 			"dependencies": {
 				"fluid-tree-sitter:smaug": {
 					"path": "."
@@ -49,7 +61,9 @@
 		},
 		{
 			"name": "unittest-external",
-			"libs": ["tree-sitter"],
+			"libs": [
+				"tree-sitter"
+			],
 			"dependencies": {
 				"fluid-tree-sitter:smaug": {
 					"path": "."
