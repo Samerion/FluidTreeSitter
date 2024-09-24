@@ -16,10 +16,6 @@
 	"stringImportPaths": [
 		"external"
 	],
-	"dflags": [
-		"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/include",
-		"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/src"
-	],
 	"lflags-linux": [
 		"-rpath=$$ORIGIN",
 		"-Lbuild"
@@ -31,13 +27,15 @@
 	"configurations": [
 		{
 			"name": "default",
-			"targetType": "dynamicLibrary",
-			"sourceFiles": [
-				"source/lib_tree_sitter.c"
-			],
+			"targetType": "library",
 			"sourcePaths": [
 				"source/fluid"
-			]
+			],
+			"dependencies": {
+				"fluid-tree-sitter:tree-sitter": {
+					"path": "."
+				}
+			}
 		},
 		{
 			"name": "external",
@@ -51,6 +49,9 @@
 				"source/lib_tree_sitter.c"
 			],
 			"dependencies": {
+				"fluid-tree-sitter:tree-sitter": {
+					"path": "."
+				},
 				"fluid-tree-sitter:smaug": {
 					"path": "."
 				},
@@ -76,6 +77,21 @@
 	],
 	"subPackages": [
 		{
+			"name": "tree-sitter",
+			"sourceFiles": [
+				"source/lib_tree_sitter.c"
+			],
+			"sourcePaths": [],
+			"importPaths": [],
+			"targetPath": "build",
+			"targetType": "dynamicLibrary",
+			"dflags": [
+				"-betterC",
+				"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/include",
+				"-P-I$FLUID_TREE_SITTER_PACKAGE_DIR/external/tree-sitter/lib/src"
+			]
+		},
+		{
 			"name": "smaug",
 			"sourceFiles": [
 				"source/tree_sitter_smaug.c"
@@ -83,7 +99,10 @@
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
-			"targetType": "dynamicLibrary"
+			"targetType": "dynamicLibrary",
+			"dflags": [
+				"-betterC"
+			]
 		},
 		{
 			"name": "d",
@@ -94,7 +113,10 @@
 			"sourcePaths": [],
 			"importPaths": [],
 			"targetPath": "build",
-			"targetType": "dynamicLibrary"
+			"targetType": "dynamicLibrary",
+			"dflags": [
+				"-betterC"
+			]
 		}
 	]
 }
