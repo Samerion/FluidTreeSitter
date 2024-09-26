@@ -1277,14 +1277,14 @@ static void ts_query__perform_analysis(
           if (action->type == TSParseActionTypeShift) {
             if (!action->shift.extra) {
               successor.state = action->shift.state;
-              successor.child_index += 1;
+              successor.child_index = successor.child_index + 1;
             }
           } else {
             continue;
           }
         } else if (lookahead_iterator.next_state != 0) {
           successor.state = lookahead_iterator.next_state;
-          successor.child_index += 1;
+          successor.child_index = successor.child_index + 1;
         } else {
           continue;
         }
@@ -1894,7 +1894,7 @@ static bool ts_query__analyze_patterns(TSQuery *self, unsigned *error_offset) {
           .step_index = pattern_entry->step_index,
           .stack = {
             [0] = {
-              //.parse_state = parse_state,
+              .parse_state = parse_state,
               .parent_symbol = subgraph->symbol,
               .child_index = 0,
               .field_id = 0,
@@ -3110,7 +3110,7 @@ static bool ts_query_cursor__first_in_progress_capture(
       ts_node_end_byte(node) <= self->start_byte ||
       point_lte(ts_node_end_point(node), self->start_point)
     ) {
-      state->consumed_capture_count += 1;
+      state->consumed_capture_count = state->consumed_capture_count + 1;
       i--;
       continue;
     }
@@ -4059,7 +4059,7 @@ bool ts_query_cursor_next_capture(
 
       // Skip captures that are outside of the cursor's range.
       if (node_outside_of_range) {
-        state->consumed_capture_count += 1;
+        state->consumed_capture_count = state->consumed_capture_count + 1;
         continue;
       }
 
@@ -4101,7 +4101,7 @@ bool ts_query_cursor_next_capture(
       match->captures = captures->contents;
       match->capture_count = captures->size;
       *capture_index = state->consumed_capture_count;
-      state->consumed_capture_count += 1;
+      state->consumed_capture_count = state->consumed_capture_count + 1;
       return true;
     }
 

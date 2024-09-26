@@ -769,7 +769,7 @@ match_not_in_is(TSLexer *lexer, const bool *valid)
 }
 
 void *
-tree_sitter_d_external_scanner_create()
+tree_sitter_d_external_scanner_create(void)
 {
 	return (NULL);
 }

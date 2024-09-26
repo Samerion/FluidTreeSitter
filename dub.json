@@ -143,6 +143,9 @@
 			],
 			"sourcePaths": [],
 			"importPaths": [],
+			"buildRequirements": [
+				"allowWarnings"
+			],
 			"targetPath": "build",
 			"targetType": "dynamicLibrary",
 			"dflags": [
