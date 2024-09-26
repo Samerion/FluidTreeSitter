@@ -44,7 +44,7 @@
 				"/LIBPATH:$PACKAGE_DIR/libraries/windows"
 			],
 			"copyFiles": [
-				"$PACKAGE_DIR/libraries/windows/tree-sitter.dll"
+				"$PACKAGE_DIR/libraries/windows/libtree-sitter.dll"
 			]
 		},
 		{
