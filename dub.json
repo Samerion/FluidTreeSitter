@@ -40,10 +40,10 @@
 			"sourcePaths": [
 				"source/fluid"
 			],
-			"lflags-windows": [
+			"lflags": [
 				"/LIBPATH:$PACKAGE_DIR/libraries/windows"
 			],
-			"copyFiles-windows": [
+			"copyFiles": [
 				"$PACKAGE_DIR/libraries/windows/tree-sitter.dll"
 			]
 		},
@@ -143,6 +143,9 @@
 			],
 			"sourcePaths": [],
 			"importPaths": [],
+			"buildRequirements": [
+				"allowWarnings"
+			],
 			"targetPath": "build",
 			"targetType": "dynamicLibrary",
 			"dflags": [
