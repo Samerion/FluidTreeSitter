@@ -1,1 +1,0 @@
-../external/tree-sitter-smaug/src/parser.c

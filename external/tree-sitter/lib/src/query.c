@@ -1277,14 +1277,14 @@ static void ts_query__perform_analysis(
           if (action->type == TSParseActionTypeShift) {
             if (!action->shift.extra) {
               successor.state = action->shift.state;
-              successor.child_index++;
+              successor.child_index += 1;
             }
           } else {
             continue;
           }
         } else if (lookahead_iterator.next_state != 0) {
           successor.state = lookahead_iterator.next_state;
-          successor.child_index++;
+          successor.child_index += 1;
         } else {
           continue;
         }
@@ -1702,7 +1702,7 @@ static bool ts_query__analyze_patterns(TSQuery *self, unsigned *error_offset) {
     analysis_state_set__clear(&analysis.deeper_states, &analysis.state_pool);
     for (unsigned j = 0; j < subgraph->start_states.size; j++) {
       TSStateId parse_state = subgraph->start_states.contents[j];
-      analysis_state_set__push(&analysis.states, &analysis.state_pool, &((AnalysisState) {
+      AnalysisState state = {
         .step_index = parent_step_index + 1,
         .stack = {
           [0] = {
@@ -1715,7 +1715,8 @@ static bool ts_query__analyze_patterns(TSQuery *self, unsigned *error_offset) {
         },
         .depth = 1,
         .root_symbol = parent_symbol,
-      }));
+      };
+      analysis_state_set__push(&analysis.states, &analysis.state_pool, &state);
     }
 
     #ifdef DEBUG_ANALYZE_QUERY
@@ -1889,11 +1890,11 @@ static bool ts_query__analyze_patterns(TSQuery *self, unsigned *error_offset) {
 
       for (uint32_t k = 0; k < subgraph->start_states.size; k++) {
         TSStateId parse_state = subgraph->start_states.contents[k];
-        analysis_state_set__push(&analysis.states, &analysis.state_pool, &((AnalysisState) {
+        AnalysisState state = {
           .step_index = pattern_entry->step_index,
           .stack = {
             [0] = {
-              .parse_state = parse_state,
+              //.parse_state = parse_state,
               .parent_symbol = subgraph->symbol,
               .child_index = 0,
               .field_id = 0,
@@ -1902,7 +1903,8 @@ static bool ts_query__analyze_patterns(TSQuery *self, unsigned *error_offset) {
           },
           .root_symbol = subgraph->symbol,
           .depth = 1,
-        }));
+        };
+        analysis_state_set__push(&analysis.states, &analysis.state_pool, &state);
       }
     }
 
@@ -3108,7 +3110,7 @@ static bool ts_query_cursor__first_in_progress_capture(
       ts_node_end_byte(node) <= self->start_byte ||
       point_lte(ts_node_end_point(node), self->start_point)
     ) {
-      state->consumed_capture_count++;
+      state->consumed_capture_count += 1;
       i--;
       continue;
     }
@@ -3255,18 +3257,19 @@ static void ts_query_cursor__add_state(
     pattern->pattern_index,
     pattern->step_index
   );
-  array_insert(&self->states, index, ((QueryState) {
+  QueryState state = {
     .id = UINT32_MAX,
     .capture_list_id = NONE,
     .step_index = pattern->step_index,
     .pattern_index = pattern->pattern_index,
-    .start_depth = start_depth,
-    .consumed_capture_count = 0,
+    .start_depth = (uint16_t)start_depth,
+    .consumed_capture_count = (uint16_t)0,
     .seeking_immediate_match = true,
     .has_in_progress_alternatives = false,
     .needs_parent = step->depth == 1,
     .dead = false,
-  }));
+  };
+  array_insert(&self->states, index, state);
 }
 
 // Acquire a capture list for this state. If there are no capture lists left in the
@@ -4056,7 +4059,7 @@ bool ts_query_cursor_next_capture(
 
       // Skip captures that are outside of the cursor's range.
       if (node_outside_of_range) {
-        state->consumed_capture_count++;
+        state->consumed_capture_count += 1;
         continue;
       }
 
@@ -4098,7 +4101,7 @@ bool ts_query_cursor_next_capture(
       match->captures = captures->contents;
       match->capture_count = captures->size;
       *capture_index = state->consumed_capture_count;
-      state->consumed_capture_count++;
+      state->consumed_capture_count += 1;
       return true;
     }
 

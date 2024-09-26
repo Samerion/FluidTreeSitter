@@ -29,6 +29,25 @@
 	],
 	"configurations": [
 		{
+			"name": "windows-bin",
+			"targetType": "library",
+			"platforms": [
+				"windows"
+			],
+			"libs": [
+				"tree-sitter"
+			],
+			"sourcePaths": [
+				"source/fluid"
+			],
+			"lflags-windows": [
+				"/LIBPATH:$PACKAGE_DIR/libraries/windows"
+			],
+			"copyFiles-windows": [
+				"$PACKAGE_DIR/libraries/windows/tree-sitter.dll"
+			]
+		},
+		{
 			"name": "default",
 			"targetType": "library",
 			"sourcePaths": [
@@ -87,19 +106,6 @@
 			"targetType": "dynamicLibrary",
 			"configurations": [
 				{
-					"name": "windows-bin",
-					"targetType": "none",
-					"platforms": [
-						"windows"
-					],
-					"libs": [
-						"tree-sitter"
-					],
-					"copyFiles-windows": [
-						"$PACKAGE_DIR/libraries/windows/tree-sitter.dll"
-					]
-				},
-				{
 					"name": "default",
 					"dflags": [
 						"-betterC",
@@ -115,7 +121,7 @@
 		{
 			"name": "smaug",
 			"sourceFiles": [
-				"source/tree_sitter_smaug.c"
+				"external/tree-sitter-smaug/src/parser.c"
 			],
 			"sourcePaths": [],
 			"importPaths": [],
@@ -132,8 +138,8 @@
 		{
 			"name": "d",
 			"sourceFiles": [
-				"source/tree_sitter_d.c",
-				"source/tree_sitter_d_scanner.c"
+				"external/tree-sitter-d/src/parser.c",
+				"external/tree-sitter-d/src/scanner.c"
 			],
 			"sourcePaths": [],
 			"importPaths": [],
