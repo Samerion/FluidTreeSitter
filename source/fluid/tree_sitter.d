@@ -193,16 +193,26 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
     }
 
-    void parse(Rope text) @trusted {
+    void parse(Rope text, TextInterval start, TextInterval oldEnd, TextInterval newEnd) @trusted {
 
         import std.conv;
 
         this.text = text;
 
         // Delete previous tree
-        // TODO Use ts_tree_edit instead
-        if (_tree) ts_tree_delete(_tree);
-        _tree = null;
+        if (_tree) {
+            TSInputEdit edit;
+            edit.start_byte = cast(uint) start.length;
+            edit.start_point.row = cast(uint) start.line;
+            edit.start_point.column = cast(uint) start.column;
+            edit.old_end_byte = cast(uint) oldEnd.length;
+            edit.old_end_point.row = cast(uint) oldEnd.line;
+            edit.old_end_point.column = cast(uint) oldEnd.column;
+            edit.new_end_byte = cast(uint) newEnd.length;
+            edit.new_end_point.row = cast(uint) newEnd.line;
+            edit.new_end_point.column = cast(uint) newEnd.column;
+            ts_tree_edit(_tree, &edit);
+        }
 
         // Make the rope readable by TreeSitter
         TSInput input;
@@ -529,7 +539,8 @@ unittest {
     const string_ = highlighter.tokenForCaptureName("string");
 
     // Load the source
-    highlighter.parse(source);
+    const end = TextInterval(source);
+    highlighter.parse(source, TextInterval.init, end, end);
 
     // Test some specific tokens in order
     auto range = highlighter.save;
@@ -567,7 +578,8 @@ unittest {
     const string_ = highlighter.tokenForCaptureName("string");
 
     // Load the source
-    highlighter.parse(source);
+    const end = TextInterval(source);
+    highlighter.parse(source, TextInterval.init, end, end);
 
     // Test some specific tokens in order
     auto range = highlighter.save;
@@ -616,15 +628,23 @@ unittest {
         }                 // 0
     `);
 
-    highlighter.parse(source);
+    const end = TextInterval(source);
+    highlighter.parse(source, TextInterval.init, end, end);
 
     int previousIndent = 0;
 
-    foreach (i, line; Typeface.lineSplitterIndex(source)) {
+    foreach (line; source.byLine) {
 
-        if (!line.byDchar.endsWith!isDigit) return;
+        const i = line.index;
 
-        const expectedIndent = line.retro.until("//").array.strip.retro.to!int;
+        if (!line.tail(1).startsWith!isDigit) return;
+
+        const expectedIndent = line.byCharReverse
+            .until("//")
+            .array
+            .strip
+            .retro
+            .to!int;
         auto lineHome = i + line.until!(a => a != ' ').walkLength;
 
         assert(highlighter.indentLevel(lineHome) == expectedIndent);
@@ -641,7 +661,8 @@ unittest {
     auto highlighter = new TreeSitterHighlighter(trusted!(treeSitterLanguage!"smaug"), smaugQuery);
     auto source = Rope("let foo() {\n");
 
-    highlighter.parse(source);
+    const end = TextInterval(source);
+    highlighter.parse(source, TextInterval.init, end, end);
 
     assert(highlighter.indentLevel(0) == 0);
     assert(highlighter.indentLevel(source.length) == 1);
