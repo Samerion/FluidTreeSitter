@@ -141,6 +141,9 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         /// delimiter of each line, rather than the line's start.
         SortedRange!(Line[]) _lines;
 
+        /// True after the value changes. Indicates TS queries have to be rerun.
+        bool isUpdatePending;
+
     }
 
     /// Create a highlighter using a TSLanguage* and relevant highlight query.
@@ -230,12 +233,13 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         // Create the tree
         _tree = ts_parser_parse(_parser, _tree, input);
-
-        runQueries();
+        isUpdatePending = true;
 
     }
 
     /// Run Tree Sitter queries.
+    ///
+    /// Does nothing if the value hasn't changed since the last call.
     private void runQueries() @trusted {
 
         Delimiter wholeIndent(ptrdiff_t offset, int change, TSPoint point) {
@@ -244,6 +248,9 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
 
         }
 
+        // Ignore if there's nothing to update
+        if (!isUpdatePending) return;
+
         auto root = ts_tree_root_node(_tree);
         auto rootStart = ts_node_start_point(root);
         auto rootEnd = ts_node_end_point(root);
@@ -251,6 +258,7 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
         // Delete the slices
         // TODO Reuse as much as possible
         highlighterSlices.length = 0;
+        isUpdatePending = false;
 
         auto delimiters = appender!(Delimiter[]);
         bool[ptrdiff_t] excludedIndents;
@@ -387,6 +395,8 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
     in (false)
     do {
 
+        runQueries();
+
         auto result = highlighterSlices
             .filter!(a => a.start != a.end)
             .find!(a => a.start >= firstIndex);
@@ -401,6 +411,8 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
     }
 
     int indentLevel(ptrdiff_t offset) {
+
+        runQueries();
 
         auto results = _lines.trisect(offset);
 
@@ -418,6 +430,8 @@ class TreeSitterHighlighter : CodeHighlighter, CodeIndentor {
     }
 
     int indentDifference(ptrdiff_t offset) {
+
+        runQueries();
 
         // Find the previous line
         const lineStart = text.lineStartByIndex(offset);
