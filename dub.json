@@ -4,7 +4,7 @@
 	],
 	"copyright": "Copyright © 2024, Artha",
 	"dependencies": {
-		"fluid": ">=0.0.0"
+		"fluid": "~>0.8.0"
 	},
 	"description": "Tree Sitter integration for Fluid's CodeInput",
 	"license": "BSL",
@@ -40,11 +40,11 @@
 			"sourcePaths": [
 				"source/fluid"
 			],
-			"lflags-windows": [
+			"lflags": [
 				"/LIBPATH:$PACKAGE_DIR/libraries/windows"
 			],
-			"copyFiles-windows": [
-				"$PACKAGE_DIR/libraries/windows/tree-sitter.dll"
+			"copyFiles": [
+				"$PACKAGE_DIR/libraries/windows/libtree-sitter.dll"
 			]
 		},
 		{
