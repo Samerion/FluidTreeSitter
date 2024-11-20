@@ -56,7 +56,7 @@ class TreeSitterHighlighter : CodeHighlighter {
 
         CodeToken[string] palette;
         string[256] paletteNames;
-        IndexedCodeSlice[] highlighterSlices;
+        SortedRange!(IndexedCodeSlice[]) highlighterSlices;
 
     }
 
@@ -71,10 +71,17 @@ class TreeSitterHighlighter : CodeHighlighter {
 
             auto cmp = slice.opCmp(other.slice);
 
-            if (cmp) return cmp;
-
             // If the delimiters have the same offset, sort them so the last patterns come up first
-            return other.patternIndex - patternIndex;
+            if (cmp == 0) {
+                return other.patternIndex - patternIndex;
+            }
+            else return cmp;
+
+        }
+
+        size_t opCmp(const CodeSlice other) const {
+
+            return slice.opCmp(other);
 
         }
 
@@ -198,12 +205,12 @@ class TreeSitterHighlighter : CodeHighlighter {
 
         auto root = ts_tree_root_node(_tree);
 
-        // Delete the slices
-        // TODO Reuse as much as possible
-        highlighterSlices.length = 0;
+        // Reset previously used highlighter slices
+        auto slices = highlighterSlices.release.appender;
+        slices.clear();
         isUpdatePending = false;
 
-        scope (success) highlighterSlices.sort!("a < b", SwapStrategy.stable);
+        scope (success) highlighterSlices = slices[].sort!("a < b", SwapStrategy.stable);
 
         // Run the query, find all matches
         ts_query_cursor_exec(_cursor, _query, root);
@@ -229,7 +236,7 @@ class TreeSitterHighlighter : CodeHighlighter {
                 // Highlight token
                 const token = tokenForCaptureName(name);
 
-                highlighterSlices ~= IndexedCodeSlice(
+                slices ~= IndexedCodeSlice(
                     CodeSlice(start, end, token),
                     match.pattern_index,
                 );
@@ -247,9 +254,19 @@ class TreeSitterHighlighter : CodeHighlighter {
 
         runQueries();
 
-        auto result = highlighterSlices
-            .filter!(a => a.start != a.end)
-            .find!(a => a.start >= firstIndex);
+        // First index in the range
+        if (firstIndex == 0) {
+            return highlighterSlices.empty
+                ? CodeSlice()
+                : highlighterSlices.front;
+        }
+            
+
+        const previousIndex = firstIndex - 1;
+        const previousSlice = CodeSlice(previousIndex, previousIndex);
+
+        auto result = highlighterSlices.upperBound(previousSlice)
+            .filter!(a => a.start != a.end);
 
         if (result.empty)
             return CodeSlice();
